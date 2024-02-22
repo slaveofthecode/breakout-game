@@ -23,7 +23,8 @@
 		</style>
 	</head>
 	<body>
-		<canvas id="breakout" width="480" height="320"></canvas>
+		<canvas id="breakout"></canvas>
+		<!-- ADT 7.724 hasta Junio inclusive -->
 	</body>
 
 	<script>
@@ -112,9 +113,9 @@
 		drawPaddle = () => {
 			ctx.beginPath();
 			ctx.rect(paddle.x, paddle.y, paddle.width, paddle.height);
-			ctx.strokeStyle = "#FFF9";
-			ctx.lineWidth = 1;
-			ctx.stroke();
+			// ctx.strokeStyle = "#FFF9";
+			// ctx.lineWidth = 1;
+			// ctx.stroke();
 			ctx.fillStyle = paddle.color;
 			ctx.fill();
 			ctx.closePath();
@@ -134,27 +135,86 @@
 			width: 75,
 			height: 20,
 			padding: 10,
-			offsetTop: 30,
-			offsetLeft: 30,
+			offsetTop: 50,
+			offsetLeft: 120,
 			color: "#FFF8",
 		};
 		const bricks = [];
+
+		for (let i = 0; i < brick.row; i++) {
+			bricks[i] = [];
+			for (let j = 0; j < brick.column; j++) {
+				bricks[i][j] = {
+					x: 0,
+					y: 0,
+					status: 1,
+				};
+			}
+		}
+
 		drawBricks = () => {
 			for (let i = 0; i < brick.row; i++) {
-				bricks[i] = [];
 				for (let j = 0; j < brick.column; j++) {
-					const x =
-						i * (brick.width + brick.padding) + brick.offsetLeft;
-					const y =
-						j * (brick.height + brick.padding) + brick.offsetTop;
-					bricks[i][j] = { x, y, status: 1 };
 					if (bricks[i][j].status === 1) {
+						const brickX =
+							j * (brick.width + brick.padding) +
+							brick.offsetLeft;
+						const brickY =
+							i * (brick.height + brick.padding) +
+							brick.offsetTop;
+
+						bricks[i][j] = {
+							...bricks[i][j],
+							x: brickX,
+							y: brickY,
+						};
+
 						ctx.beginPath();
-						ctx.rect(x, y, brick.width, brick.height);
+						ctx.rect(brickX, brickY, brick.width, brick.height);
 						ctx.fillStyle = brick.color;
 						ctx.fill();
 						ctx.closePath();
 					}
+				}
+			}
+		};
+
+		// Collitions
+		collitionDetection = () => {
+			for (let i = 0; i < brick.row; i++) {
+				for (let j = 0; j < brick.column; j++) {
+					const currentBrick = bricks[i][j];
+
+					if (currentBrick.status === 0) continue;
+
+					const isBallSameXBrick =
+						ball.x > currentBrick.x &&
+						ball.x < currentBrick.x + brick.width + currentBrick;
+
+					if (
+						ball.x > currentBrick.x &&
+						ball.x < currentBrick.x + brick.width + currentBrick &&
+						ball.y > currentBrick.y &&
+						ball.y < currentBrick.y + brick.height
+					) {
+						ball.dy = -ball.dy;
+						currentBrick.status = 0;
+					}
+				}
+			}
+
+			if (
+				ball.x + ball.dx > canvas.width - ball.radius ||
+				ball.x + ball.dx < ball.radius
+			) {
+				ball.dx = -ball.dx;
+			} else if (ball.y + ball.dy < ball.radius) {
+				ball.dy = -ball.dy;
+			} else if (ball.y + ball.dy > canvas.height - ball.radius) {
+				if (ball.x > paddle.x && ball.x < paddle.x + paddle.width) {
+					ball.dy = -ball.dy;
+				} else {
+					document.location.reload();
 				}
 			}
 		};
@@ -170,10 +230,12 @@
 
 			drawBricks();
 
+			collitionDetection();
+
 			window.requestAnimationFrame(play);
 		}
 
-		play();
+		// play();
 		initEventsListeners();
 	</script>
 </html>
