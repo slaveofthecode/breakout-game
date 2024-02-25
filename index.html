@@ -11,13 +11,26 @@
 		<link rel="icon" href="favicon.ico" type="image/x-icon" />
 	</head>
 	<body>
-		<div class="container">
-			<div class="container_header">
-				<button id="btnPlay">Play</button>
-				<span id="timePlayed"></span>
+		<div class="game">
+			<div class="game-header">
+				<span id="timeElapsed"></span>
 				<span> Score: <strong id="scoreValue"></strong></span>
 			</div>
-			<canvas width="480" height="400" />
+			<canvas width="480" height="400" class="game-canvas" />
+		</div>
+		<div class="gameover">
+			<div class="gameover-container">
+				<h1 class="gameover-container__title"></h1>
+				<p id="gameoverScore">
+					<span></span>
+					<strong></strong>
+				</p>
+				<p id="gameoverTime">
+					<span></span>
+					<strong></strong>
+				</p>
+				<button id="restartButton">Restart</button>
+			</div>
 		</div>
 	</body>
 	<script src="breakout.js"></script>

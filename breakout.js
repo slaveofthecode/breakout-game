@@ -1,28 +1,38 @@
 let gameFinished = false;
+
 const rowBricks = 5;
 const colBricks = 7;
 
-const $btnPlay = document.querySelector("#btnPlay");
-const $timePlayed = document.querySelector("#timePlayed");
+const $timeElapsed = document.querySelector("#timeElapsed");
 const $scoreValue = document.querySelector("#scoreValue");
+const $restartButton = document.querySelector("#restartButton");
 
-$btnPlay.setAttribute("disabled", true);
-$timePlayed.textContent = "00:00";
+const $gameover = document.querySelector(".gameover");
+const $gameoverTitle = $gameover.querySelector(".gameover-container__title");
+const $gameoverScore = $gameover.querySelector("#gameoverScore");
+const $gameoverTime = $gameover.querySelector("#gameoverTime");
+
+const $game = document.querySelector(".game");
+
+$gameover.style.display = "none";
+$restartButton.setAttribute("disabled", true);
+
+$timeElapsed.textContent = "00:00";
 $scoreValue.textContent = rowBricks * colBricks;
 
 setInterval(() => {
 	if (gameFinished) return;
 
-	const time = $timePlayed.textContent.split(":");
+	const time = $timeElapsed.textContent.split(":");
 	const minutes = parseInt(time[0]);
 	const seconds = parseInt(time[1]);
 
 	if (seconds < 59) {
-		$timePlayed.textContent = `${minutes < 10 ? "0" + minutes : minutes}:${
+		$timeElapsed.textContent = `${minutes < 10 ? "0" + minutes : minutes}:${
 			seconds + 1 < 10 ? "0" + (seconds + 1) : seconds + 1
 		}`;
 	} else {
-		$timePlayed.textContent = `${
+		$timeElapsed.textContent = `${
 			minutes + 1 < 10 ? "0" + (minutes + 1) : minutes + 1
 		}:00`;
 	}
@@ -125,14 +135,35 @@ function moveBall() {
 	} else if (isPaddle) {
 		mov.y = -velocity;
 	} else if (isBottomWall) {
-		console.log("Game Over");
 		gameFinished = true;
-		$btnPlay.removeAttribute("disabled");
+		$restartButton.removeAttribute("disabled");
+		$gameover.removeAttribute("style");
+		$game.classList.add("-gameover");
+
+		$gameoverTitle.classList.add("-lost");
+		$gameoverTitle.textContent = "Game Over";
+
+		$gameoverScore.querySelector("span").textContent = "Bricks pending";
+		$gameoverScore.querySelector("strong").textContent =
+			$scoreValue.textContent;
+
+		$gameoverTime.querySelector("span").textContent = "Time";
+		$gameoverTime.querySelector("strong").textContent =
+			$timeElapsed.textContent;
 	} else if (allBricksDestroyed) {
-		console.log("You win");
 		gameFinished = true;
-		$btnPlay.removeAttribute("disabled");
-		// stop time
+		$restartButton.removeAttribute("disabled");
+		$gameover.removeAttribute("style");
+		$game.classList.add("-gameover");
+
+		$gameoverTitle.classList.add("-win");
+		$gameoverTitle.textContent = "You Win!";
+
+		$gameoverScore.style.display = "none";
+
+		$gameoverTime.querySelector("span").textContent = "Time";
+		$gameoverTime.querySelector("strong").textContent =
+			$timeElapsed.textContent;
 	}
 
 	if (!gameFinished) {
@@ -199,7 +230,7 @@ function cleanCtx() {
 }
 
 function initEventsListenersActions() {
-	$btnPlay.addEventListener("click", handleClickPlay, false);
+	$restartButton.addEventListener("click", handleClickPlay, false);
 
 	function handleClickPlay() {
 		document.location.reload();
