@@ -1,17 +1,180 @@
-const canvas = document.getElementById("breakout");
-canvas.width = 420;
-canvas.height = 260;
+const $btnPlay = document.querySelector("#btnPlay");
+
+const canvas = document.querySelector("canvas");
 const ctx = canvas.getContext("2d");
 
-// Canvas
-const canvasWidth = canvas.width;
-const canvasHeight = canvas.height;
+const velocity = 4;
+const mov = {
+	x: velocity,
+	y: -velocity,
+};
+const ball = {
+	radius: 5,
+	color: "#0008",
+};
+const paddle = {
+	height: 10,
+	width: 75,
+	color: "black",
+};
+
+const rowBricks = 5;
+const colBricks = 7;
+const brick = {
+	height: 16,
+	width: 48,
+	color: "red",
+	offsetTop: 16 * 2,
+	offsetLeft: canvas.width / 2 - (48 * colBricks) / 2 - 8 * 3,
+	padding: 8,
+};
+const brickColors = ["red", "yellow", "green", "blue", "gray", "orange"];
+
+const bricks = [];
+
+for (let r = 0; r < rowBricks; r++) {
+	bricks[r] = [];
+	for (let c = 0; c < colBricks; c++) {
+		const posX = c * (brick.width + brick.padding) + brick.offsetLeft;
+		const posY = r * (brick.height + brick.padding) + brick.offsetTop;
+		const indexColor = Math.round(Math.random() * 5);
+		bricks[r][c] = {
+			posX,
+			posY,
+			status: 1,
+			color: brickColors[indexColor],
+		};
+	}
+}
+
+const position = {
+	ball: {
+		x: canvas.width / 2,
+		y: canvas.height - ball.radius - paddle.height - 2,
+	},
+	paddle: {
+		x: canvas.width / 2 - paddle.width / 5,
+		y: canvas.height - paddle.height,
+	},
+};
 
 let keyRightPressed = false;
 let keyLeftPressed = false;
 
-function cleanCanvas() {
+function drawBall() {
+	ctx.beginPath();
+	ctx.arc(position.ball.x, position.ball.y, ball.radius, 0, Math.PI * 2);
+	ctx.fillStyle = ball.color;
+	ctx.fill();
+	ctx.closePath();
+}
+
+function drawPaddle() {
+	ctx.beginPath();
+	ctx.rect(position.paddle.x, position.paddle.y, paddle.width, paddle.height);
+	ctx.fillStyle = paddle.color;
+	ctx.fill();
+	ctx.closePath();
+}
+
+function moveBall() {
+	const isRightWall = position.ball.x + ball.radius > canvas.width;
+	const isTopWall = position.ball.y - ball.radius < 0;
+	const isLeftWall = position.ball.x - ball.radius < 0;
+	const isBottomWall = position.ball.y > canvas.height;
+	const isPaddle =
+		position.ball.y + ball.radius > position.paddle.y &&
+		position.ball.x > position.paddle.x + ball.radius &&
+		position.ball.x < position.paddle.x + paddle.width;
+	const allBricksDestroyed = bricks.every((row) =>
+		row.every((brick) => brick.status === 0)
+	);
+
+	if (isRightWall) {
+		mov.x = -velocity;
+	} else if (isTopWall) {
+		mov.y = velocity;
+	} else if (isLeftWall) {
+		mov.x = velocity;
+	} else if (isPaddle) {
+		mov.y = -velocity;
+	} else if (isBottomWall) {
+		console.log("Game Over");
+		// document.location.reload();
+		// window.cancelAnimationFrame(play);
+		gameFinished = true;
+	} else if (allBricksDestroyed) {
+		console.log("You win");
+		gameFinished = true;
+	}
+
+	if (!gameFinished) {
+		for (let r = 0; r < rowBricks; r++) {
+			for (let c = 0; c < colBricks; c++) {
+				const currentBrick = bricks[r][c];
+				if (currentBrick.status === 1) {
+					if (
+						position.ball.x > currentBrick.posX &&
+						position.ball.x < currentBrick.posX + brick.width &&
+						position.ball.y > currentBrick.posY &&
+						position.ball.y < currentBrick.posY + brick.height
+					) {
+						mov.y = -mov.y;
+						currentBrick.status = 0;
+					}
+				}
+			}
+		}
+	}
+
+	position.ball.x += mov.x;
+	position.ball.y += mov.y;
+}
+
+function movePaddle() {
+	const isLeftWall = position.paddle.x < 0;
+	const isRightWall = position.paddle.x + paddle.width > canvas.width;
+
+	if (keyRightPressed && !isRightWall) {
+		position.paddle.x += velocity * 2;
+	} else if (keyLeftPressed && !isLeftWall) {
+		position.paddle.x -= velocity * 2;
+	}
+}
+
+function drawBricks() {
+	for (let r = 0; r < rowBricks; r++) {
+		for (let c = 0; c < colBricks; c++) {
+			const currentBrinck = bricks[r][c];
+
+			if (currentBrinck.status === 0) continue;
+
+			ctx.beginPath();
+			ctx.rect(
+				currentBrinck.posX,
+				currentBrinck.posY,
+				brick.width,
+				brick.height
+			);
+			ctx.fillStyle = currentBrinck.color;
+			ctx.fill();
+			ctx.strokeStyle = "#000";
+			ctx.stroke();
+			ctx.closePath();
+		}
+	}
+}
+
+function cleanCtx() {
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+function initEventsListenersActions() {
+	$btnPlay.addEventListener("click", handleClickPlay, false);
+
+	function handleClickPlay() {
+		document.location.reload();
+	}
 }
 
 function initEventsListeners() {
@@ -19,207 +182,96 @@ function initEventsListeners() {
 	document.addEventListener("keyup", keyUpHandler, false);
 
 	function keyDownHandler(e) {
-		if (e.key === "Right" || e.key === "ArrowRight") {
-			keyRightPressed = true;
-		} else if (e.key === "Left" || e.key === "ArrowLeft") {
-			keyLeftPressed = true;
-		}
+		const isKeyRight = ["Right", "ArrowRight"].includes(e.key);
+		const isKeyLeft = ["Left", "ArrowLeft"].includes(e.key);
+
+		if (isKeyRight) keyRightPressed = true;
+		else if (isKeyLeft) keyLeftPressed = true;
 	}
 
 	function keyUpHandler(e) {
-		if (e.key === "Right" || e.key === "ArrowRight") {
-			keyRightPressed = false;
-		} else if (e.key === "Left" || e.key === "ArrowLeft") {
-			keyLeftPressed = false;
-		}
+		const isKeyRight = ["Right", "ArrowRight"].includes(e.key);
+		const isKeyLeft = ["Left", "ArrowLeft"].includes(e.key);
+
+		if (isKeyRight) keyRightPressed = false;
+		else if (isKeyLeft) keyLeftPressed = false;
 	}
 }
 
-// Ball
-const ball = {
-	x: canvas.width / 2,
-	y: canvas.height - 30,
-	dx: 2,
-	dy: -2,
-	radius: 7,
-	color: "#FFF",
-};
-drawBall = () => {
-	ctx.beginPath();
-	ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
-	ctx.fillStyle = ball.color;
-	ctx.fill();
-	ctx.closePath();
-};
-ballMove = () => {
-	const isRightWall = ball.x + ball.dx > canvas.width - ball.radius;
-	const isLeftWall = ball.x + ball.dx < ball.radius;
-	const isTopWall = ball.y + ball.dy < ball.radius;
-	const isTouchingPaddle = ball.y + ball.dy > paddle.y;
+let touchStartX = 0;
+function initEventsListenersMobile() {
+	document.addEventListener("touchstart", touchHandlerStart, false);
+	document.addEventListener("touchend", touchHandlerEnd, false);
 
-	if (isRightWall || isLeftWall) {
-		ball.dx = -ball.dx;
-	}
+	function touchHandlerStart(e) {
+		if (e.touches) {
+			// const touchX = e.touches[0]?.clientX;
+			// const isTouchedLeft = touchX < canvas.width / 2;
+			// const isTouchedRight = touchX > canvas.width / 2;
+			// if (isTouchedRight) keyRightPressed = true;
+			// else if (isTouchedLeft) keyLeftPressed = true;
 
-	if (isTopWall) {
-		ball.dy = -ball.dy;
-	} else {
-		console.log("GAME OVER");
-		document.location.reload();
-	}
+			// touchX = e.touches[0]?.clientX;
 
-	// } else if (isTouchingPaddle) {
-	// 	ball.dy = -ball.dy;
-	// const isBallSameXAsPaddle =
-	// 	ball.x > paddle.x && ball.x < paddle.x + paddle.width;
-
-	// if (isBallSameXAsPaddle && isBallTouchingPaddle) {
-	// 	ball.dy = -ball.dy;
-	// } else if (ball.y + ball.dy > canvas.height - ball.radius) {
-	// 	console.log("GAME OVER");
-	// 	document.location.reload();
-	// }
-
-	ball.x += ball.dx;
-	ball.y += ball.dy;
-};
-
-// Paddle
-const paddle = {
-	width: 75,
-	height: 10,
-	x: (canvas.width - 75) / 2,
-	y: canvas.height - 10,
-	color: "#FFF5",
-};
-drawPaddle = () => {
-	ctx.beginPath();
-	ctx.rect(paddle.x, paddle.y, paddle.width, paddle.height);
-	// ctx.strokeStyle = "#FFF9";
-	// ctx.lineWidth = 1;
-	// ctx.stroke();
-	ctx.fillStyle = paddle.color;
-	ctx.fill();
-	ctx.closePath();
-};
-paddleMove = () => {
-	if (keyRightPressed && paddle.x < canvas.width - paddle.width) {
-		paddle.x += 7;
-	} else if (keyLeftPressed && paddle.x > 0) {
-		paddle.x -= 7;
-	}
-};
-
-// Bricks
-const brick = {
-	row: 6,
-	column: 5,
-	width: 75,
-	height: 20,
-	padding: 10,
-	offsetTop: 50,
-	offsetLeft: canvas.width / 2 - 200,
-	color: "#FFF8",
-};
-const bricks = [];
-
-for (let c = 0; c < brick.column; c++) {
-	bricks[c] = [];
-	for (let r = 0; r < brick.row; r++) {
-		const brickX = c * (brick.width + brick.padding) + brick.offsetLeft;
-		const brickY = r * (brick.height + brick.padding) + brick.offsetTop;
-
-		bricks[c][r] = {
-			x: brickX,
-			y: brickY,
-			status: 1,
-		};
-	}
-}
-
-drawBricks = () => {
-	for (let c = 0; c < brick.column; c++) {
-		for (let r = 0; r < brick.row; r++) {
-			const currentBrick = bricks[c][r];
-			if (currentBrick.status === 0) continue;
-
-			ctx.beginPath();
-			ctx.rect(brick.row, brick.column, brick.width, brick.height);
-			ctx.fillStyle = brick.color;
-			ctx.fill();
-			ctx.closePath();
-		}
-	}
-};
-
-// Collitions
-collitionDetection = () => {
-	for (let c = 0; c < brick.column; c++) {
-		for (let r = 0; r < brick.row; r++) {
-			const currentBrick = bricks[c][r];
-
-			if (currentBrick.status === 0) continue;
-
-			const isBallSameXBrick =
-				ball.x > currentBrick.x &&
-				ball.x < currentBrick.x + brick.width;
-			const isBallSameYBrick =
-				ball.y > currentBrick.y &&
-				ball.y < currentBrick.y + brick.height;
-
-			if (isBallSameXBrick && isBallSameYBrick) {
-				ball.dy = -ball.dy;
-				currentBrick.status = 0;
+			if (e.touches && e.touches.length > 0) {
+				touchStartX = e.touches[0].clientX;
 			}
 		}
 	}
-};
 
-// FPS rendering
-let msLast = window.performance.now();
-let msFPSPrev = window.performance.now() + 1000;
-const fps = 60;
-const msPerFrame = 1000 / fps;
-let frames = 0;
-let framesPerSec = fps;
+	function touchHandlerEnd(e) {
+		if (e.touches) {
+			// const touchX = e.touches[0]?.clientX;
+			// const isTouchedLeft = touchX < canvas.width / 2;
+			// const isTouchedRight = touchX > canvas.width / 2;
+			// if (isTouchedRight) keyRightPressed = false;
+			// else if (isTouchedLeft) keyLeftPressed = false;
+			// e.preventDefault();
 
-function drawUI() {
-	ctx.fillText(`FPS: ${framesPerSec}`, 5, 10);
+			// const touchEndX = e.changedTouches[0]?.clientX;
+			// const isTouchedLeft = touchEndX < touchX;
+			// const isTouchedRight = touchEndX > touchX;
+			// if (isTouchedRight) keyRightPressed = true;
+			// else if (isTouchedLeft) keyLeftPressed = true;
+
+			// const endX = e.changedTouches[0]?.clientX;
+			// const diffX = touchX - endX;
+			// if (diffX > 0) keyLeftPressed = true;
+			// else if (diffX < 0) keyRightPressed = true;
+			console.log(e.changedTouches);
+
+			if (e.changedTouches && e.changedTouches.length > 0) {
+				const touchEndX = e.changedTouches[0].clientX;
+				console.log(touchStartX, touchEndX);
+				// const touchDifferenceX = touchEndX - touchStartX;
+				// // const threshold = 50; // Ajusta este valor según sea necesario
+
+				// if (touchDifferenceX > 0) {
+				// 	keyRightPressed = true;
+				// } else if (touchDifferenceX < 0) {
+				// 	keyLeftPressed = true;
+				// }
+			}
+		}
+	}
 }
-// ---
+
+let gameFinished = false;
 
 function play() {
-	window.requestAnimationFrame(play);
+	cleanCtx();
 
-	// // renderings
-	// const msNow = window.performance.now();
-	// const msDelta = msNow - msLast;
-
-	// if (msDelta < msPerFrame) return;
-
-	// const excessTime = msDelta % msPerFrame;
-	// msLast = msNow - excessTime;
-
-	// frames++;
-
-	// if (msNow > msFPSPrev) {
-	// 	msFPSPrev = msNow + 1000;
-	// 	framesPerSec = frames;
-	// 	frames = 0;
-	// }
-	// ----
-
-	// cleanCanvas();
+	if (!gameFinished) window.requestAnimationFrame(play);
 
 	drawBall();
-	// ballMove();
-	// drawPaddle();
-	// paddleMove();
-	// drawBricks();
-	// drawUI();
+	drawPaddle();
+	moveBall();
+	movePaddle();
 
-	// collitionDetection();
+	drawBricks();
 }
 
 play();
+initEventsListenersActions();
 initEventsListeners();
+// initEventsListenersMobile();
