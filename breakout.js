@@ -1,4 +1,32 @@
+let gameFinished = false;
+const rowBricks = 5;
+const colBricks = 7;
+
 const $btnPlay = document.querySelector("#btnPlay");
+const $timePlayed = document.querySelector("#timePlayed");
+const $scoreValue = document.querySelector("#scoreValue");
+
+$btnPlay.setAttribute("disabled", true);
+$timePlayed.textContent = "00:00";
+$scoreValue.textContent = rowBricks * colBricks;
+
+setInterval(() => {
+	if (gameFinished) return;
+
+	const time = $timePlayed.textContent.split(":");
+	const minutes = parseInt(time[0]);
+	const seconds = parseInt(time[1]);
+
+	if (seconds < 59) {
+		$timePlayed.textContent = `${minutes < 10 ? "0" + minutes : minutes}:${
+			seconds + 1 < 10 ? "0" + (seconds + 1) : seconds + 1
+		}`;
+	} else {
+		$timePlayed.textContent = `${
+			minutes + 1 < 10 ? "0" + (minutes + 1) : minutes + 1
+		}:00`;
+	}
+}, 1000);
 
 const canvas = document.querySelector("canvas");
 const ctx = canvas.getContext("2d");
@@ -18,8 +46,6 @@ const paddle = {
 	color: "black",
 };
 
-const rowBricks = 5;
-const colBricks = 7;
 const brick = {
 	height: 16,
 	width: 48,
@@ -100,12 +126,13 @@ function moveBall() {
 		mov.y = -velocity;
 	} else if (isBottomWall) {
 		console.log("Game Over");
-		// document.location.reload();
-		// window.cancelAnimationFrame(play);
 		gameFinished = true;
+		$btnPlay.removeAttribute("disabled");
 	} else if (allBricksDestroyed) {
 		console.log("You win");
 		gameFinished = true;
+		$btnPlay.removeAttribute("disabled");
+		// stop time
 	}
 
 	if (!gameFinished) {
@@ -121,6 +148,8 @@ function moveBall() {
 					) {
 						mov.y = -mov.y;
 						currentBrick.status = 0;
+						$scoreValue.textContent =
+							parseInt($scoreValue.textContent) - 1;
 					}
 				}
 			}
@@ -256,8 +285,6 @@ function initEventsListenersMobile() {
 	}
 }
 
-let gameFinished = false;
-
 function play() {
 	cleanCtx();
 
@@ -272,6 +299,7 @@ function play() {
 }
 
 play();
+
 initEventsListenersActions();
 initEventsListeners();
 // initEventsListenersMobile();

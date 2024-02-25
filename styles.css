@@ -18,3 +18,10 @@ canvas {
 	flex-direction: column;
 	gap: 4px;
 }
+
+.container_header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 4px;
+}
