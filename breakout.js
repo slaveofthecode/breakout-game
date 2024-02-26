@@ -258,61 +258,31 @@ function initEventsListeners() {
 	}
 }
 
-let touchStartX = 0;
+let touchIsLeft = false;
 function initEventsListenersMobile() {
-	document.addEventListener("touchstart", touchHandlerStart, false);
-	document.addEventListener("touchend", touchHandlerEnd, false);
+	document.addEventListener("touchstart", touchHandlerStart, {
+		passive: true,
+	});
+	document.addEventListener("touchend", touchHandlerEnd, { passive: true });
 
 	function touchHandlerStart(e) {
 		if (e.touches) {
-			// const touchX = e.touches[0]?.clientX;
-			// const isTouchedLeft = touchX < canvas.width / 2;
-			// const isTouchedRight = touchX > canvas.width / 2;
-			// if (isTouchedRight) keyRightPressed = true;
-			// else if (isTouchedLeft) keyLeftPressed = true;
+			const touchX = e.touches[0].clientX;
+			const isLeft = touchX < document.body.clientWidth / 2;
 
-			// touchX = e.touches[0]?.clientX;
-
-			if (e.touches && e.touches.length > 0) {
-				touchStartX = e.touches[0].clientX;
+			if (isLeft) {
+				touchIsLeft = true;
+				keyLeftPressed = true;
+			} else {
+				touchIsLeft = false;
+				keyRightPressed = true;
 			}
 		}
 	}
 
 	function touchHandlerEnd(e) {
-		if (e.touches) {
-			// const touchX = e.touches[0]?.clientX;
-			// const isTouchedLeft = touchX < canvas.width / 2;
-			// const isTouchedRight = touchX > canvas.width / 2;
-			// if (isTouchedRight) keyRightPressed = false;
-			// else if (isTouchedLeft) keyLeftPressed = false;
-			// e.preventDefault();
-
-			// const touchEndX = e.changedTouches[0]?.clientX;
-			// const isTouchedLeft = touchEndX < touchX;
-			// const isTouchedRight = touchEndX > touchX;
-			// if (isTouchedRight) keyRightPressed = true;
-			// else if (isTouchedLeft) keyLeftPressed = true;
-
-			// const endX = e.changedTouches[0]?.clientX;
-			// const diffX = touchX - endX;
-			// if (diffX > 0) keyLeftPressed = true;
-			// else if (diffX < 0) keyRightPressed = true;
-			console.log(e.changedTouches);
-
-			if (e.changedTouches && e.changedTouches.length > 0) {
-				const touchEndX = e.changedTouches[0].clientX;
-				console.log(touchStartX, touchEndX);
-				// const touchDifferenceX = touchEndX - touchStartX;
-				// // const threshold = 50; // Ajusta este valor según sea necesario
-
-				// if (touchDifferenceX > 0) {
-				// 	keyRightPressed = true;
-				// } else if (touchDifferenceX < 0) {
-				// 	keyLeftPressed = true;
-				// }
-			}
-		}
+		if (touchIsLeft) keyLeftPressed = false;
+		else keyRightPressed = false;
 	}
 }
 
@@ -333,4 +303,4 @@ play();
 
 initEventsListenersActions();
 initEventsListeners();
-// initEventsListenersMobile();
+initEventsListenersMobile();
