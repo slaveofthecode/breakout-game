@@ -1,5 +1,7 @@
 body {
-	background: fff;
+	/* background: #f002; */
+	background: url(./background.png) repeat center center fixed;
+	/* background-size: cover; */
 	height: 100vh;
 	display: flex;
 	justify-content: center;
@@ -27,8 +29,8 @@ body {
 	filter: blur(4px);
 }
 .game-canvas {
-	background: transparent;
-	border: 2px solid black;
+	background: #fff5;
+	border: 2px solid #bd5858;
 	border-bottom: none;
 }
 .game-header {
@@ -43,7 +45,8 @@ button {
 	cursor: pointer;
 	background: #fff;
 	padding: 12px 24px;
-	border: 2px solid black;
+	border: 2px solid #bd5858;
+	color: #bd5858;
 }
 
 .gameover {
@@ -82,10 +85,23 @@ button {
 	font-weight: bold;
 	text-transform: uppercase;
 	letter-spacing: 12px;
+	text-align: center;
+	text-shadow: 6px 6px 12px black;
 }
-.gameover-container__title.-win {
-	color: green;
+
+.gameover.-gameover {
+	/* background: linear-gradient(0deg, #f005, #fff5, transparent); */
+	background: linear-gradient(0deg, #fff, #fff5, transparent);
 }
-.gameover-container__title.-lost {
+.gameover.-win {
+	/* background-color: linear-gradient(0deg, #0805, white, transparent); */
+	background: linear-gradient(0deg, #fff, #fff5, transparent);
+}
+
+.gameover.-gameover .gameover-container__title {
 	color: red;
+}
+
+.gameover.-win .gameover-container__title {
+	color: green;
 }

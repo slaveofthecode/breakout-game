@@ -1,7 +1,7 @@
 let gameFinished = false;
 
-const rowBricks = 5;
-const colBricks = 7;
+const rowBricks = 6;
+const colBricks = 12;
 
 const $timeElapsed = document.querySelector("#timeElapsed");
 const $scoreValue = document.querySelector("#scoreValue");
@@ -47,22 +47,23 @@ const mov = {
 	y: -velocity,
 };
 const ball = {
-	radius: 5,
-	color: "#0008",
+	radius: 6,
+	color: "#0005",
 };
 const paddle = {
 	height: 10,
-	width: 75,
-	color: "black",
+	width: 50,
+	color: "#de3a3a",
 };
 
 const brick = {
 	height: 16,
-	width: 48,
-	color: "red",
+	width: 32,
+	color: "#bd5858",
 	offsetTop: 16 * 2,
-	offsetLeft: canvas.width / 2 - (48 * colBricks) / 2 - 8 * 3,
-	padding: 8,
+	// offsetLeft: canvas.width / 2 - (32 * colBricks) / 2 - 8 * 3,
+	offsetLeft: canvas.width / 2 - (39 * colBricks) / 2,
+	padding: 6,
 };
 const brickColors = ["red", "yellow", "green", "blue", "gray", "orange"];
 
@@ -71,14 +72,18 @@ const bricks = [];
 for (let r = 0; r < rowBricks; r++) {
 	bricks[r] = [];
 	for (let c = 0; c < colBricks; c++) {
-		const posX = c * (brick.width + brick.padding) + brick.offsetLeft;
+		let posX = c * (brick.width + brick.padding) + brick.offsetLeft;
+
+		if (r % 2 === 0)
+			posX = c * (brick.width + brick.padding) + brick.offsetLeft + 16;
+
 		const posY = r * (brick.height + brick.padding) + brick.offsetTop;
 		const indexColor = Math.round(Math.random() * 5);
 		bricks[r][c] = {
 			posX,
 			posY,
 			status: 1,
-			color: brickColors[indexColor],
+			color: brick.color || brickColors[indexColor],
 		};
 	}
 }
@@ -134,32 +139,24 @@ function moveBall() {
 		mov.x = velocity;
 	} else if (isPaddle) {
 		mov.y = -velocity;
-	} else if (isBottomWall) {
+	} else if (isBottomWall || allBricksDestroyed) {
 		gameFinished = true;
+
 		$restartButton.removeAttribute("disabled");
 		$gameover.removeAttribute("style");
 		$game.classList.add("-gameover");
 
-		$gameoverTitle.classList.add("-lost");
-		$gameoverTitle.textContent = "Game Over";
-
-		$gameoverScore.querySelector("span").textContent = "Bricks pending";
-		$gameoverScore.querySelector("strong").textContent =
-			$scoreValue.textContent;
-
-		$gameoverTime.querySelector("span").textContent = "Time";
-		$gameoverTime.querySelector("strong").textContent =
-			$timeElapsed.textContent;
-	} else if (allBricksDestroyed) {
-		gameFinished = true;
-		$restartButton.removeAttribute("disabled");
-		$gameover.removeAttribute("style");
-		$game.classList.add("-gameover");
-
-		$gameoverTitle.classList.add("-win");
-		$gameoverTitle.textContent = "You Win!";
-
-		$gameoverScore.style.display = "none";
+		if (isBottomWall) {
+			$gameover.classList.add("-gameover");
+			$gameoverTitle.textContent = "Game Over";
+			$gameoverScore.querySelector("span").textContent = "Bricks pending";
+			$gameoverScore.querySelector("strong").textContent =
+				$scoreValue.textContent;
+		} else if (allBricksDestroyed) {
+			$gameover.classList.add("-win");
+			$gameoverTitle.textContent = "You Win!";
+			$gameoverScore.style.display = "none";
+		}
 
 		$gameoverTime.querySelector("span").textContent = "Time";
 		$gameoverTime.querySelector("strong").textContent =
@@ -218,7 +215,7 @@ function drawBricks() {
 			);
 			ctx.fillStyle = currentBrinck.color;
 			ctx.fill();
-			ctx.strokeStyle = "#000";
+			ctx.strokeStyle = "#fff";
 			ctx.stroke();
 			ctx.closePath();
 		}
@@ -233,6 +230,7 @@ function initEventsListenersActions() {
 	$restartButton.addEventListener("click", handleClickPlay, false);
 
 	function handleClickPlay() {
+		$restartButton.setAttribute("disabled", true);
 		document.location.reload();
 	}
 }
