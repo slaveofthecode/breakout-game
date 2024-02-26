@@ -1,4 +1,4 @@
-let gameFinished = false;
+let gameFinished = true;
 
 const rowBricks = 6;
 const colBricks = 12;

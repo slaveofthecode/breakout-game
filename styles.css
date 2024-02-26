@@ -1,3 +1,9 @@
+@font-face {
+	font-family: "punk kid";
+	src: url("./punk\ kid.ttf");
+	font-weight: bold;
+}
+
 body {
 	background: url(./background.png) repeat center center fixed;
 	/* background-size: contain; */
@@ -22,7 +28,17 @@ body {
 .game {
 	display: flex;
 	flex-direction: column;
+	align-items: center;
 	gap: 4px;
+}
+.game > h1 {
+	text-align: center;
+	margin-bottom: 32px;
+	color: #bd5858;
+	text-shadow: 2px 4px 8px #0005;
+	font-family: "punk kid";
+	letter-spacing: 8px;
+	width: 90%;
 }
 .game.-gameover {
 	filter: blur(4px);
@@ -39,6 +55,7 @@ body {
 	display: flex;
 	justify-content: space-around;
 	align-items: center;
+	width: 90%;
 	gap: 4px;
 }
 /* #endregion */
